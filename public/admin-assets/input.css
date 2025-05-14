@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primarybg: #F7F8FA; 
+  --color-gray: #EDEFF2; 
+  --color-purple: #8833FF; 
+  --color-lightpurple: #AF75FF; 
+  --color-darkgray: #6B7A99; 
+  --color-lightgray: #C3CAD9; 
+  --color-lightgraybg: #FAFBFC; 
+  --color-orange: #FF6633; 
+  --color-sky: #33BFFF; 
+  --color-blue: #3361FF; 
+  --color-yellow: #FFCB33; 
+  --color-darkyellow: #FF9C00; 
+  --color-green: #29CC39; 
+  --color-darkgreen: #008000; 
+  --color-lightgreen: #EAFAEB; 
+  --color-warning: #AC1010; 
+  --color-danger: #FF0000; 
+  --color-danger: #FF0000; 
+  --radius-10px: 10px;
+  --font-primary: "DM Sans", sans-serif;
+  --shadow-primary: 0px 0px 4px 0px rgba(164,164,164,0.25); 
+}
+
+body{
+  @apply bg-primarybg p-5 lg:px-10 lg:py-8 xl:px-12 xl:py-8 font-primary text-sm text-darkgray
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  content: url(images/calendar-icon.jpg);
+}
+
+.bg-borderimage{
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='10' ry='10' stroke='%23C3CAD9FF' stroke-width='3' stroke-dasharray='6%2c 14' stroke-dashoffset='9' stroke-linecap='square'/%3e%3c/svg%3e");
+}
+
+.sidebar-menu .nav-item > a:is(.active, :hover), .sidebar-dropdown.open > a{
+  @apply bg-purple text-white font-bold
+}
+.sidebar-menu .nav-item > a:is(.active, :hover) svg, .sidebar-dropdown.open > a svg{
+  @apply text-lightpurple
+}
+.sidebar-submenu a:is(:hover, .active){
+  @apply text-purple
+}
+.sidebar-dropdown.open .dropdown-arrow{
+  @apply rotate-180
+}
+.sidebar-dropdown .sidebar-submenu li{
+  @apply last:pb-5 first:pt-3
+}
+.sidebar-submenu { @apply max-h-0 overflow-hidden transition-all duration-300 ease-linear}
+.sidebar-submenu.active { @apply max-h-max}
+
+.custom-select{@apply appearance-none bg-no-repeat bg-[90%_50%]}
+.custom-select{background-image: url('data:image/svg+xml,<svg width="9" height="5" viewBox="0 0 9 5" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0.165533 0.923844C0.113745 0.874276 0.0724381 0.814983 0.044021 0.749426C0.0156039 0.683868 0.000646092 0.613358 2.04724e-05 0.54201C-0.000605148 0.470663 0.0131139 0.399905 0.0403771 0.333868C0.0676403 0.267831 0.107902 0.207835 0.158812 0.157383C0.209722 0.10693 0.270262 0.0670318 0.336898 0.0400138C0.403535 0.0129957 0.474934 -0.000599882 0.546929 2.00033e-05C0.618925 0.000639888 0.690075 0.0154628 0.756227 0.0436244C0.82238 0.0717859 0.882211 0.112722 0.932229 0.164043L4.11993 3.32307C4.22161 3.42381 4.3595 3.4804 4.50328 3.4804C4.64705 3.4804 4.78494 3.42381 4.88662 3.32307L8.07432 0.163505C8.17607 0.0627495 8.31403 0.0061742 8.45786 0.00622474C8.6017 0.0062748 8.73962 0.0629478 8.84129 0.163775C8.94296 0.264602 9.00005 0.401324 9 0.543865C8.99995 0.686406 8.94276 0.823088 8.84102 0.923844L4.88662 4.84267C4.78494 4.94341 4.64705 5 4.50328 5C4.3595 5 4.22161 4.94341 4.11993 4.84267L0.165533 0.923844Z" fill="%236B7A99"/></svg>');}
+
+/* scrolling bar */
+/* width */
+.custom-scroll::-webkit-scrollbar {
+  @apply w-1 h-1
+}
+
+/* Track */
+.custom-scroll::-webkit-scrollbar-track {
+  @apply bg-[#ECE4FB] rounded-lg
+}
+ 
+/* Handle */
+.custom-scroll::-webkit-scrollbar-thumb {
+  @apply bg-lightgray rounded-lg
+}
+
+/* Handle on hover */
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  @apply bg-lightpurple
+}
+
+/* tabs-nav */
+#tabs-nav li.active a{
+  @apply after:h-0.5 after:bg-orange after:w-full after:absolute after:top-full after:left-0 text-orange
+}
+
+#tabs-nav.task-list-tabnav li.active a{
+  @apply text-purple after:bg-purple
+}
+
+/* dropdown-menu */
+.dropdown-menu.active{@apply visible opacity-100}
+
+.custom-dropdown.active .custom-dropdown-arrow{@apply rotate-180}
+.custom-dropdown.active .custom-dropdown-select{@apply bg-purple text-white}
+.custom-dropdown-nobg.active .custom-dropdown-select{@apply bg-transparent text-current}
+
+
+/* custom table */
+.custom-table{
+  @apply text-xs font-medium
+}
+.custom-table thead{
+  @apply bg-primarybg
+}
+.custom-table div.dt-container .dt-input, table.custom-table.dataTable>tbody>tr{
+  @apply bg-transparent
+}
+table.custom-table.dataTable.display>tbody>tr:nth-child(odd)>*, table.custom-table.dataTable.stripe>tbody>tr:nth-child(odd)>*{
+  @apply shadow-none
+}
+table.custom-table.dataTable>thead>tr>td, table.custom-table.dataTable>thead>tr>th{
+  @apply border-0 shadow-[0px_2px_0px_0px_#D9D9D9] first:rounded-tl-lg first:rounded-bl-lg last:rounded-br-lg last:rounded-tr-lg
+}
+table.custom-table.dataTable.display>tbody>tr>*, table.custom-table.dataTable.row-border>tbody>tr>*{
+  @apply border-0
+}
+.custom-table div.dt-container.dt-empty-footer .dt-scroll-body, .custom-table div.dt-container.dt-empty-footer tbody>tr:last-child>*{
+  @apply border-0
+}
+.custom-table .custom-table{@apply font-semibold}
+table.custom-table.dataTable>thead>tr>td, table.custom-table.dataTable>thead>tr>th{
+  @apply px-8 py-5
+}
+table.custom-table.dataTable>tbody>tr>td, table.custom-table.dataTable>tbody>tr>th{
+  @apply py-2.5 px-4 text-ellipsis overflow-hidden text-left
+}
+table.custom-table.dataTable>tbody>tr:first-child>td, table.custom-table.dataTable>tbody>tr:first-child>th{
+  @apply pt-5
+}
+table.custom-table.dataTable>tbody>tr:last-child>td, table.custom-table.dataTable>tbody>tr:last-child>th{
+  @apply pb-0
+}
+table.custom-table.dataTable.display>tbody>tr:hover>*, table.custom-table.dataTable.hover>tbody>tr:hover>*{@apply shadow-none}
+table.custom-table .dtr-control{@apply flex items-center}
+table.custom-table.dataTable>tbody>tr.child>td, table.custom-table.dataTable>tbody>tr.child>th{
+  @apply py-0
+}
+table.custom-table .table-warning, table.custom-table .table-danger{@apply before:w-[5px] before:relative before:-top-[1px] before:h-[5px] before:rounded-full before:inline-block before:mr-1.5 before:-mt-1}
+table.custom-table .table-warning{@apply text-[#FF9C00] before:bg-[#FF9C00]}
+table.custom-table .table-danger{@apply text-[#FF0000] before:bg-[#FF0000]}
+table.custom-table .text-center{@apply text-center}
+
+
+.custom-table-order.custom-table{@apply border-separate border-spacing-0}
+.custom-table-order.custom-table thead{@apply bg-transparent}
+table.custom-table-order.custom-table.dataTable>thead>tr>td, table.custom-table-order.custom-table.dataTable>thead>tr>th{
+  @apply px-3.5 py-4 text-left border-2 border-gray rounded-none border-r-0 border-l-0 first:rounded-tl-10px last:rounded-tr-10px first:border-l-2 last:border-r-2 shadow-none bg-transparent
+}
+table.custom-table-order.custom-table.dataTable>tbody>tr>td, table.custom-table-order.custom-table.dataTable>tbody>tr>th{
+  @apply first:border-l-2 last:border-r-2 border-gray
+}
+table.custom-table-order.custom-table.dataTable>tbody>tr:last-child>td, table.custom-table-order.custom-table.dataTable>tbody>tr:last-child>th{
+  @apply border-b-2 pb-4 first:rounded-bl-10px last:rounded-br-10px
+}
+table.custom-table-order.custom-table.dataTable.display>tbody>tr>*, table.custom-table-order.custom-table.dataTable.hover>tbody>tr>*{@apply shadow-none}
+table.custom-table-order.custom-table.dataTable.display>tbody>tr:nth-child(even)>*, table.custom-table-order.custom-table.dataTable.stripe>tbody>tr:nth-child(even)>*{
+  @apply bg-lightgraybg
+}
+.custom-table-main div.dt-container .dt-layout-row{@apply text-xs first:mb-6}
+table.dataTable.custom-table-order {@apply mb-6}
+.custom-table-main div.dt-container .dt-length label[for="dt-length-0"]{@apply text-sm font-semibold}
+.custom-table-main div.dt-container .dt-length select{@apply p-2 mr-2.5 outline-none pr-5 border border-lightgray font-medium appearance-none bg-no-repeat bg-[85%_50%]}
+.custom-table-main div.dt-container .dt-length select{background-image: url('data:image/svg+xml,<svg width="9" height="5" viewBox="0 0 9 5" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0.165533 0.923844C0.113745 0.874276 0.0724381 0.814983 0.044021 0.749426C0.0156039 0.683868 0.000646092 0.613358 2.04724e-05 0.54201C-0.000605148 0.470663 0.0131139 0.399905 0.0403771 0.333868C0.0676403 0.267831 0.107902 0.207835 0.158812 0.157383C0.209722 0.10693 0.270262 0.0670318 0.336898 0.0400138C0.403535 0.0129957 0.474934 -0.000599882 0.546929 2.00033e-05C0.618925 0.000639888 0.690075 0.0154628 0.756227 0.0436244C0.82238 0.0717859 0.882211 0.112722 0.932229 0.164043L4.11993 3.32307C4.22161 3.42381 4.3595 3.4804 4.50328 3.4804C4.64705 3.4804 4.78494 3.42381 4.88662 3.32307L8.07432 0.163505C8.17607 0.0627495 8.31403 0.0061742 8.45786 0.00622474C8.6017 0.0062748 8.73962 0.0629478 8.84129 0.163775C8.94296 0.264602 9.00005 0.401324 9 0.543865C8.99995 0.686406 8.94276 0.823088 8.84102 0.923844L4.88662 4.84267C4.78494 4.94341 4.64705 5 4.50328 5C4.3595 5 4.22161 4.94341 4.11993 4.84267L0.165533 0.923844Z" fill="%236B7A99"/></svg>');}
+.custom-table-main .dt-search label{@apply font-semibold text-sm}
+.custom-table-main .dt-search input.dt-input{@apply border-lightgray ml-2.5 outline-none }
+table.dataTable thead>tr>td.dt-orderable-asc:hover, table.dataTable thead>tr>td.dt-orderable-desc:hover, table.dataTable thead>tr>th.dt-orderable-asc:hover, table.dataTable thead>tr>th.dt-orderable-desc:hover{
+  @apply outline-none
+}
+.custom-table-main .dt-layout-row button.dt-paging-button.current, .custom-table-main .dt-layout-row button.dt-paging-button.current:hover, .custom-table-main div.dt-container .dt-paging .dt-paging-button:hover{
+  @apply bg-purple text-[#ffffff!important] bg-linear-to-r from-purple to-purple border-0
+}
+.custom-table-main div.dt-container .dt-paging .dt-paging-button{
+  @apply border-0
+}
