@@ -1037,50 +1037,52 @@
         });
 
         // INIT
-        window.addEventListener("DOMContentLoaded", () => {
-            startLiveClock();
+        @if (auth()->user()->role === 'Staff' || auth()->user()->role === 'Manager')
+            window.addEventListener("DOMContentLoaded", () => {
+                startLiveClock();
 
-            const isCheckedIn = @json($isCheckedIn);
-            const checkInTimestamp = @json($checkInTime ? $checkInTime->timestamp : null);
-            const checkOutTime = @json($checkOutTime ? $checkOutTime->format('h:i:s A') : null);
-            const now = Math.floor(Date.now() / 1000);
+                const isCheckedIn = @json($isCheckedIn);
+                const checkInTimestamp = @json($checkInTime ? $checkInTime->timestamp : null);
+                const checkOutTime = @json($checkOutTime ? $checkOutTime->format('h:i:s A') : null);
+                const now = Math.floor(Date.now() / 1000);
 
-            const savedDuration = parseInt(localStorage.getItem("attendanceTimerDuration") || "0");
-            const lastUpdated = parseInt(localStorage.getItem("attendanceTimerLastUpdated") || now);
-            const paused = localStorage.getItem("attendanceTimerPaused") === "true";
+                const savedDuration = parseInt(localStorage.getItem("attendanceTimerDuration") || "0");
+                const lastUpdated = parseInt(localStorage.getItem("attendanceTimerLastUpdated") || now);
+                const paused = localStorage.getItem("attendanceTimerPaused") === "true";
 
-            if (isCheckedIn && checkInTimestamp) {
-                if (paused) {
-                    duration = savedDuration;
+                if (isCheckedIn && checkInTimestamp) {
+                    if (paused) {
+                        duration = savedDuration;
+                    } else {
+                        duration = savedDuration + (now - lastUpdated);
+                    }
+
+                    updateTimerDisplay();
+                    timerEnabled = true;
+                    isPaused = true;
+
+                    if (!paused) {
+                        toggleTimer(); // Start ticking
+                    }
+
+                    document.getElementById("clockInOut").innerText = "Clock Out";
+                    document.getElementById("statusSwitch").disabled = false;
+                    document.getElementById("timerPlayPause").disabled = false;
+
+                } else if (checkOutTime) {
+                    document.getElementById("clockInOut").innerText = "Clocked Out";
+                    document.getElementById("clockInOut").disabled = true;
+                    document.getElementById("timerPlayPause").disabled = true;
+                    document.getElementById("statusSwitch").disabled = true;
+                    timerEnabled = false;
+                    localStorage.clear();
                 } else {
-                    duration = savedDuration + (now - lastUpdated);
+                    document.getElementById("timerPlayPause").disabled = true;
+                    timerEnabled = false;
+                    localStorage.clear();
                 }
-
-                updateTimerDisplay();
-                timerEnabled = true;
-                isPaused = true;
-
-                if (!paused) {
-                    toggleTimer(); // Start ticking
-                }
-
-                document.getElementById("clockInOut").innerText = "Clock Out";
-                document.getElementById("statusSwitch").disabled = false;
-                document.getElementById("timerPlayPause").disabled = false;
-
-            } else if (checkOutTime) {
-                document.getElementById("clockInOut").innerText = "Clocked Out";
-                document.getElementById("clockInOut").disabled = true;
-                document.getElementById("timerPlayPause").disabled = true;
-                document.getElementById("statusSwitch").disabled = true;
-                timerEnabled = false;
-                localStorage.clear();
-            } else {
-                document.getElementById("timerPlayPause").disabled = true;
-                timerEnabled = false;
-                localStorage.clear();
-            }
-        });
+            });
+        @endif
     </script>
 
     {{-- yajra table data  --}}

@@ -12,23 +12,20 @@ use App\Http\Controllers\Admin\SalaryController;
 use App\Http\Controllers\Admin\StaffController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
 
+Route::get('/', [AuthController::class, 'Login'])->name('login');
+Route::post('/sign-in', [AuthController::class, 'signin'])->name('login.store');
+Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetPasswordEmail'])->name('password.email');
+Route::get('/password/change',  [AuthController::class, 'create'])
+    ->name('password.change.form');
 
+Route::post('/password/change', [AuthController::class, 'store'])
+    ->name('password.change.store');
 Route::prefix('chameleon')->group(function () {
 
     // AuthController -------------------------------------------
-    Route::get('/login', [AuthController::class, 'Login'])->name('login');
-    Route::post('/sign-in', [AuthController::class, 'signin'])->name('login.store');
-    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'sendResetPasswordEmail'])->name('password.email');
-    Route::get('/password/change',  [AuthController::class, 'create'])
-        ->name('password.change.form');
 
-    Route::post('/password/change', [AuthController::class, 'store'])
-        ->name('password.change.store');
 
     // DashboardController -------------------------------------------
     Route::prefix('dashboard')->group(function () {
