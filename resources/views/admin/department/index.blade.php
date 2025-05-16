@@ -52,15 +52,16 @@
                                     <span class="ml-2">{{ $percentage }}%</span>
                                 </div>
 
-
                                 <div class="flex gap-1.5">
                                     @foreach ($data['users'] as $userData)
                                         <img src="{{ $userData['user']->avatar ? asset('admin-uploads/avatar/' . $userData['user']->avatar) : asset('admin-assets/images/user.jpg') }}"
-                                            class="md:w-6 md:h-6 w-5 h-5 rounded-full object-cover"
-                                            alt="{{ $userData['user']->first_name }} {{ $userData['user']->last_name }}">
+                                            class="md:w-6 md:h-6 w-5 h-5 rounded-full object-cover cursor-pointer"
+                                            alt="{{ $userData['user']->first_name }} {{ $userData['user']->last_name }}"
+                                            title="{{ $userData['user']->first_name }} {{ $userData['user']->last_name }}">
                                     @endforeach
 
                                 </div>
+
                             </div>
                             @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Manager'))
                                 <div class="w-4.5 self-start relative">

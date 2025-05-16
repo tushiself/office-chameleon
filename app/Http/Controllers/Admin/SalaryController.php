@@ -56,17 +56,34 @@ class SalaryController extends Controller
 
 
 
-            // Calculate Sundays
+            // Calculate Sundays and Saturdays
             $sundays = 0;
+            $saturdays = 0;
             $daysInMonth = Carbon::parse("$selectedYear-$selectedMonth-01")->daysInMonth;
+
             for ($d = 1; $d <= $daysInMonth; $d++) {
-                if (Carbon::parse("$selectedYear-$selectedMonth-$d")->dayOfWeek == 0) {
+                $dayOfWeek = Carbon::parse("$selectedYear-$selectedMonth-$d")->dayOfWeek;
+                if ($dayOfWeek == 0) {
                     $sundays++;
+                } elseif ($dayOfWeek == 6) {
+                    $saturdays++;
                 }
             }
 
-            $workingDays = $daysInMonth - $sundays;
+            // Saturdays ka calculation
+            $halfSaturdaysAsFull = floor($saturdays / 2);
+
+            // Working days basic calculation
+            $workingDays = $daysInMonth - $sundays - $halfSaturdaysAsFull;
+
+            // Agar 5 Saturday hai toh ek din extra add kar do
+            if ($saturdays == 5) {
+                $workingDays += 1;
+            }
+
             $salaryPerDay = $workingDays > 0 ? $monthlySalary / $workingDays : 0;
+
+
 
             // Calculate total salary after deductions
             $effectivePresent = $presentDays + $paidLeaves;
@@ -78,8 +95,8 @@ class SalaryController extends Controller
             $salaryData[] = [
                 'staff_id' => $staffId,
                 'full_name' => $staff->first_name . ' ' . $staff->last_name,
-                'designation' => $staff->designation ,
-                'avatar' => $staff->avatar ,
+                'designation' => $staff->designation,
+                'avatar' => $staff->avatar,
                 'department' => $department,
                 'working_days' => $workingDays,
                 'sundays' => $sundays,

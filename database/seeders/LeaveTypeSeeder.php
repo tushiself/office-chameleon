@@ -18,7 +18,7 @@ class LeaveTypeSeeder extends Seeder
                 'leave_type' => 'Casual Leave',
                 'description' => 'Used for personal matters or relaxation',
                 'assign_days' => 12,
-                'apply_base' => 'month',
+                'apply_base' => 'year',
                 'paid_type' => 'paid',
                 'early_leave' => 1,
                 'status' => 1,

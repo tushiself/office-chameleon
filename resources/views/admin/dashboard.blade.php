@@ -141,27 +141,42 @@
                                     @foreach ($recentAttendance as $attendance)
                                         <tr>
                                             <td>
-                                                <div class="flex items-center"><img
-                                                        src="{{ $attendance->user->avatar
-                                                            ? asset('admin-uploads/avatar/' . $attendance->user->avatar)
-                                                            : asset('admin-assets/images/user-2.jpg') }}"
-                                                        alt=" {{ $attendance->user->first_name ?? '' }}
-                                                            {{ $attendance->user->last_name }}"
+                                                <div class="flex items-center">
+                                                    <img src="{{ $attendance->user->avatar
+                                                        ? asset('admin-uploads/avatar/' . $attendance->user->avatar)
+                                                        : asset('admin-assets/images/user-2.jpg') }}"
+                                                        alt="{{ $attendance->user->first_name }} {{ $attendance->user->last_name }}"
                                                         class="rounded-full w-9 h-9 mr-2.5">
                                                     {{ $attendance->user->first_name ?? '' }}
-                                                    {{ $attendance->user->last_name ?? '' }}</div>
-
+                                                    {{ $attendance->user->last_name ?? '' }}
+                                                </div>
                                             </td>
-                                            <td class="table-warning">{{ strtoupper($attendance->check_in_type) }}</td>
-                                            <td style="text-align: center">
-                                                {{ \Carbon\Carbon::parse($attendance->time_in)->format('h:i A') }}</td>
-                                            <td style="text-align: center">
-                                                {{ \Carbon\Carbon::parse($attendance->time_out)->format('h:i A') }}
+                                            @php
+                                                $status = strtoupper($attendance->status); // Now status is 'FREE', 'WORKING', or 'OFFLINE'
+                                                $statusColor = match ($status) {
+                                                    'FREE' => 'green',
+                                                    'WORKING' => 'red',
+                                                    'OFFLINE' => 'orange',
+                                                    default => 'gray',
+                                                };
+                                            @endphp
+
+                                            <td class=" table-warning" style="color: {{ $statusColor }};">
+                                                {{ $status }}
+                                            </td>
+
+
+                                            <td class="text-center">
+                                                {{ $attendance->checked_in_at ? \Carbon\Carbon::parse($attendance->checked_in_at)->format('h:i A') : '-' }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ $attendance->checked_out_at ? \Carbon\Carbon::parse($attendance->checked_out_at)->format('h:i A') : '-' }}
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
+
                         </div>
                         <div class="p-4 md:py-6 md:px-6 2xl:px-9 bg-white shadow-primary rounded-10px">
                             <div class="flex items-center justify-between">
@@ -1091,6 +1106,7 @@
             $('.table-userdata').DataTable({
                 processing: true,
                 serverSide: true,
+                 responsive: true,
                 ajax: '{{ route('dashboard') }}',
                 columns: [ // ← Correct key
                     {

@@ -92,8 +92,35 @@ class DashboardController extends Controller
 
     private function getTodayAttendances()
     {
-        return Attendance::with('user')->whereDate('date', today())->latest()->get();
+        $today = now()->toDateString();
+
+        return User::where('role', 'Staff')
+            ->with(['attendances' => function ($query) use ($today) {
+                $query->whereDate('date', $today);
+            }])
+            ->get()
+            ->map(function ($user) {
+                $attendances = $user->attendances->first(); // Only today's attendances (if exists)
+
+                $status = 'Offline';
+
+                if ($attendances) {
+                    if ($attendances->time_out !== null) {
+                        $status = 'Offline';
+                    } else {
+                        $status = $attendances->check_in_type ?? 'Offline';
+                    }
+                }
+
+                return (object) [
+                    'user'    => $user,
+                    'status'  => $status,
+                    'checked_in_at' => $attendances->check_in_time ?? null,
+                    'checked_out_at' => $attendances->time_out ?? null,
+                ];
+            });
     }
+
 
     private function getTodayLeaves()
     {

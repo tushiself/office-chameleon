@@ -97,32 +97,27 @@
 
     <div class="email-container">
         <div class="email-header">
-            <h1>Welcome to Chameleon Infotech, {{ $user->first_name }}!!</h1>
-            <p>Your Jewelry Journey Begins Here</p>
+            <h1>Welcome to Chameleon Infotech, {{ $user->first_name }}!</h1>
+            <p>Your Professional Journey Begins Here</p>
         </div>
 
         <div class="email-body">
-            <p>Dear <span class="highlight">{{ $user->first_name }}!</span>,</p>
-            <p>Thank you for choosing <strong>Chameleon Infotech</strong> as your trusted jewelry partner. We are excited to
-                welcome you to our exclusive family of jewelry lovers.</p>
+            <p>Dear <span class="highlight">{{ $user->first_name }}</span>,</p>
+            <p>We are thrilled to welcome you to <strong>Chameleon Infotech</strong>! You are now part of an innovative team dedicated to delivering cutting-edge technology solutions and services.</p>
 
-            <p>At <strong>Chameleon Infotech</strong>, we specialize in crafting exquisite, timeless jewelry that celebrates
-                beauty and elegance. Your journey with us begins now, and we look forward to offering you the finest
-                collection of jewelry to complement your style.</p>
+            <p>At <strong>Chameleon Infotech</strong>, we believe in empowering our team members to grow, innovate, and collaborate in a dynamic work environment. We are excited to have you onboard and look forward to seeing your contributions as we build the future together.</p>
 
-            <p>Your registration has been successfully completed, and we’ve created your account using the email address
-                <span class="highlight">{{ $user->email }}</span> password {{ $plainPassword }}.
+            <p>Your account has been successfully created using the email address
+                <span class="highlight">{{ $user->email }}</span> with the password <span class="highlight">{{ $plainPassword }}</span>.
             </p>
 
-            <p>To help you get started, we’ve prepared a special welcome offer just for you. Click the button below to
-                explore our collection of stunning designs:</p>
+            <p>To help you get started, you can visit our internal portal and explore important resources to kick-start your journey with us:</p>
 
-            <a href="https://www.avinajewels.com" class="button">Explore Our Collection</a>
+            <a href="https://office.chameleoninfotech.com" class="button">Visit Employee Portal</a>
         </div>
 
         <div class="footer">
-            <p>If you have any questions, feel free to <a href="mailto:support@avinajewels.com">contact us</a>. We are
-                here to assist you!</p>
+            <p>If you have any questions, feel free to <a href="mailto:info@chameleoninfotech.com">contact HR</a>. We are here to support you!</p>
             <p>&copy; 2025 Chameleon Infotech. All rights reserved.</p>
         </div>
     </div>

@@ -34,7 +34,6 @@
                             </button>
                             <ul
                                 class="mt-1 dropdown-menu absolute right-0 top-full w-40 rounded-10px p-4.5 bg-white shadow-primary text-xs font-medium space-y-3 invisible opacity-0 duration-300">
-                                @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Manager'))
                                     <li>
                                         <button onclick="window.location.href='{{ route('new-staff.edit', $user->id) }}'"
                                             class="popup-button duration-300 cursor-pointer flex items-center gap-2 hover:text-purple group"><svg
@@ -47,8 +46,6 @@
                                             </svg>
                                             Edit</button>
                                     </li>
-                                @else
-                                @endif
                                 <li><button id="btn-changePassword"
                                         class="password-popup-button duration-300 cursor-pointer flex items-center gap-2 hover:text-purple group"><svg
                                             class="w-3.5 text-lightgray group-hover:text-purple duration-300" width="11"

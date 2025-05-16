@@ -190,24 +190,25 @@ class StaffController extends Controller
     {
         $staff = User::findOrFail($request->id);
 
-        // Handle avatar upload if provided
         if ($request->hasFile('avatar')) {
             $image = $request->file('avatar');
 
-            // Optionally: delete the old avatar if it exists
+            // Delete old avatar if exists
             if ($staff->avatar) {
                 $imageUploadService->delete('admin-uploads/avatar/' . $staff->avatar);
             }
 
+            // Upload new avatar with correct name
             $fileName = $imageUploadService->upload($image, 'avatar');
-            $data['avatar'] = $fileName;
+            $staff->avatar = $fileName;
         }
 
-        // Update the staff record
-        $staff->update($request->all());
+        // Other fields update (avoid mass update of all request data directly)
+        $staff->fill($request->except('avatar'))->save();
 
         return redirect()->route('new-staff.index')->with('success', 'Staff updated successfully!');
     }
+
 
     /**
      * Remove the specified resource from storage.
