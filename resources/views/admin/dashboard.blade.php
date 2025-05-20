@@ -601,20 +601,35 @@
                                 </div>
                             </div>
                         </div>
-                        @php
-                            $user = auth()->user();
-                            $today = Carbon\Carbon::now()->toDateString();
 
-                            $attendance = \App\Models\Attendance::where('user_id', $user->id)
+                        @php
+
+                            $user = auth()->user();
+                            $today = Carbon\Carbon::today()->toDateString();
+
+                            $attendance = App\Models\Attendance::where('user_id', $user->id)
                                 ->where('date', $today)
+                                ->with([
+                                    'sessions' => function ($query) {
+                                        $query->latest('time_in');
+                                    },
+                                ])
                                 ->first();
 
-                            $checkInTime = $attendance?->time_in ? Carbon\Carbon::parse($attendance->time_in) : null;
-                            $checkOutTime = $attendance?->time_out ? Carbon\Carbon::parse($attendance->time_out) : null;
+                            $latestSession = $attendance?->sessions->first();
+
+                            $checkInTime = $latestSession?->time_in
+                                ? Carbon\Carbon::parse($latestSession->time_in)
+                                : null;
+                            $checkOutTime = $latestSession?->end_time
+                                ? Carbon\Carbon::parse($latestSession->end_time)
+                                : null;
 
                             $isCheckedIn = $checkInTime && !$checkOutTime;
+
                             $status = $attendance?->check_in_type ?? 'Offline';
                         @endphp
+
                         <div class="w-full xl:w-1/2 2xl:w-1/3 px-3 my-3 2xl:my-0">
                             <div class="bg-lightgraybg p-9 text-center shadow-primary font-medium rounded-10px">
                                 <h3 id="today" class="text-4xl font-bold mb-4"></h3>
@@ -626,7 +641,6 @@
                                         id="clockInTime">{{ $checkInTime ? $checkInTime->format('h:i:s A') : '--:--' }}</span>
                                     (<span id="clockStatus">{{ ucfirst($status) }}</span>)
                                 </p>
-
 
                                 <div class="mt-14.5 flex items-center space-x-8 justify-center">
                                     <label class="switch cursor-pointer inline-flex items-center gap-2">
@@ -640,8 +654,9 @@
                                         <span id="status" class="font-semibold">{{ ucfirst($status) }}</span>
                                     </label>
                                     <div class="flex items-center gap-2">
-                                        <span class="w-8 h-8 bg-[#ECE4FB] flex items-center justify-center rounded-sm"><svg
-                                                width="18" height="18" viewBox="0 0 18 18" fill="none"
+                                        <span class="w-8 h-8 bg-[#ECE4FB] flex items-center justify-center rounded-sm">
+                                            <!-- Icon -->
+                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
                                                 xmlns="http://www.w3.org/2000/svg">
                                                 <path
                                                     d="M8.90234 17.9893C4.2153 17.9893 0.402344 14.1763 0.402344 9.48926C0.402344 4.80222 4.2153 0.989258 8.90234 0.989258C13.5894 0.989258 17.4023 4.80222 17.4023 9.48926C17.4023 14.1763 13.5894 17.9893 8.90234 17.9893ZM8.90234 2.40592C4.99659 2.40592 1.81901 5.58351 1.81901 9.48926C1.81901 13.395 4.99659 16.5726 8.90234 16.5726C12.8081 16.5726 15.9857 13.395 15.9857 9.48926C15.9857 5.58351 12.8081 2.40592 8.90234 2.40592ZM10.6732 12.5563C11.0125 12.3608 11.1286 11.9273 10.9324 11.5888L9.61068 9.29942V5.23926C9.61068 4.84826 9.29405 4.53092 8.90234 4.53092C8.51064 4.53092 8.19401 4.84826 8.19401 5.23926V9.48926C8.19401 9.61392 8.22659 9.73576 8.28893 9.84342L9.70559 12.2971C9.83734 12.5245 10.0746 12.6513 10.3197 12.6513C10.4401 12.6513 10.562 12.6208 10.6732 12.5563Z"
@@ -656,28 +671,18 @@
                                 </div>
 
                                 <div class="mt-6 gap-4 flex justify-center">
-                                    {{-- Timer Play/Pause --}}
-                                    <button id="timerPlayPause"
-                                        class="bg-green text-white py-2.5 px-2 font-semibold rounded-md cursor-pointer w-32"
-                                        {{ !$isCheckedIn ? 'disabled' : '' }}>
-                                        {{ session('timer_paused') === true ? 'Play' : 'Pause' }}
-                                    </button>
-
-                                    {{-- Check In Button --}}
                                     <button id="checkInBtn"
                                         class="bg-purple text-white py-2.5 px-2 font-semibold rounded-md cursor-pointer w-32"
                                         style="{{ $isCheckedIn && !$checkOutTime ? 'display: none;' : '' }}">
                                         Check In
                                     </button>
 
-                                    {{-- Check Out Button --}}
                                     <button id="checkOutBtn"
                                         class="bg-purple text-white py-2.5 px-2 font-semibold rounded-md cursor-pointer w-32"
                                         style="{{ !$isCheckedIn || $checkOutTime ? 'display: none;' : '' }}">
                                         Check Out
                                     </button>
                                 </div>
-
                             </div>
                         </div>
                         <div class="w-full xl:w-1/2 2xl:w-1/3 px-3 my-3 2xl:my-0">
@@ -931,19 +936,8 @@
 
     {{-- play and pause duration --}}
     <script>
-        let isPaused = true;
         let duration = 0;
-        let timerInterval;
-        let timerEnabled = false;
-
-        function startLiveClock() {
-            const clockElement = document.getElementById('todayclock');
-            if (!clockElement) return;
-            setInterval(() => {
-                const now = new Date();
-                clockElement.textContent = now.toLocaleTimeString();
-            }, 1000);
-        }
+        let intervalId;
 
         function updateTimerDisplay() {
             const hours = String(Math.floor(duration / 3600)).padStart(2, '0');
@@ -952,40 +946,28 @@
             document.getElementById("trakingTimer").innerText = `${hours}:${minutes}:${seconds}`;
         }
 
-        function toggleTimer() {
-            if (!timerEnabled) return;
-
-            if (isPaused) {
-                timerInterval = setInterval(() => {
-                    duration++;
-                    updateTimerDisplay();
-                }, 1000);
-                document.getElementById("timerPlayPause").innerText = "Pause";
-                localStorage.setItem("attendanceTimerPaused", "false");
-            } else {
-                clearInterval(timerInterval);
-                document.getElementById("timerPlayPause").innerText = "Play";
-                localStorage.setItem("attendanceTimerPaused", "true");
-            }
-
-            localStorage.setItem("attendanceTimerLastUpdated", Math.floor(Date.now() / 1000));
-            localStorage.setItem("attendanceTimerDuration", duration);
-            isPaused = !isPaused;
+        function startLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById("today").textContent = now.toLocaleTimeString();
+            }, 1000);
         }
 
+        function startTimer(fromTimestamp) {
+            const now = Math.floor(Date.now() / 1000);
+            duration = now - fromTimestamp;
+            updateTimerDisplay();
 
-        // --- EVENTS ---
-        document.getElementById("timerPlayPause").addEventListener("click", () => {
-            fetch(isPaused ? "{{ route('attendance.startSession') }}" :
-                "{{ route('attendance.pauseSession') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json"
-                    }
-                });
-            toggleTimer();
-        });
+            intervalId = setInterval(() => {
+                duration++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
 
         document.getElementById("checkInBtn").addEventListener("click", () => {
             fetch("{{ route('attendance.store') }}", {
@@ -994,35 +976,28 @@
                         "X-CSRF-TOKEN": "{{ csrf_token() }}",
                         "Content-Type": "application/json"
                     }
-                })
-                .then(res => res.json())
+                }).then(res => res.json())
                 .then(data => {
-                    Swal.fire("Success", data.message, "success").then(() => {
-                        location.reload();
-                    });
+                    location.reload();
+                    // startTimer(data.checkInTime);
+                }).catch(() => {
+                    Swal.fire("Error", "Already checked in.", "error");
                 });
         });
 
         document.getElementById("checkOutBtn").addEventListener("click", () => {
-            const timerText = document.getElementById("trakingTimer").innerText;
-            const [h, m, s] = timerText.split(":").map(Number);
-            const totalSeconds = h * 3600 + m * 60 + s;
-
             fetch("{{ route('attendance.clockOut') }}", {
                     method: "POST",
                     headers: {
                         "X-CSRF-TOKEN": "{{ csrf_token() }}",
                         "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        duration: totalSeconds
-                    })
-                })
-                .then(res => res.json())
+                    }
+                }).then(res => res.json())
                 .then(data => {
-                    Swal.fire("Success", data.message, "success").then(() => {
-                        location.reload();
-                    });
+                    location.reload();
+                    stopTimer();
+                }).catch(() => {
+                    Swal.fire("Error", "No session to check out.", "error");
                 });
         });
 
@@ -1051,54 +1026,14 @@
                 });
         });
 
-        // INIT
-        @if (auth()->user()->role === 'Staff' || auth()->user()->role === 'Manager')
-            window.addEventListener("DOMContentLoaded", () => {
-                startLiveClock();
-
-                const isCheckedIn = @json($isCheckedIn);
-                const checkInTimestamp = @json($checkInTime ? $checkInTime->timestamp : null);
-                const checkOutTime = @json($checkOutTime ? $checkOutTime->format('h:i:s A') : null);
-                const now = Math.floor(Date.now() / 1000);
-
-                const savedDuration = parseInt(localStorage.getItem("attendanceTimerDuration") || "0");
-                const lastUpdated = parseInt(localStorage.getItem("attendanceTimerLastUpdated") || now);
-                const paused = localStorage.getItem("attendanceTimerPaused") === "true";
-
-                if (isCheckedIn && checkInTimestamp) {
-                    if (paused) {
-                        duration = savedDuration;
-                    } else {
-                        duration = savedDuration + (now - lastUpdated);
-                    }
-
-                    updateTimerDisplay();
-                    timerEnabled = true;
-                    isPaused = true;
-
-                    if (!paused) {
-                        toggleTimer(); // Start ticking
-                    }
-
-                    document.getElementById("clockInOut").innerText = "Clock Out";
-                    document.getElementById("statusSwitch").disabled = false;
-                    document.getElementById("timerPlayPause").disabled = false;
-
-                } else if (checkOutTime) {
-                    document.getElementById("clockInOut").innerText = "Clocked Out";
-                    document.getElementById("clockInOut").disabled = true;
-                    document.getElementById("timerPlayPause").disabled = true;
-                    document.getElementById("statusSwitch").disabled = true;
-                    timerEnabled = false;
-                    localStorage.clear();
-                } else {
-                    document.getElementById("timerPlayPause").disabled = true;
-                    timerEnabled = false;
-                    localStorage.clear();
-                }
-            });
-        @endif
+        window.addEventListener("DOMContentLoaded", () => {
+            startLiveClock();
+            @if ($isCheckedIn && $lastSessionStart)
+                startTimer({{ \Carbon\Carbon::parse($lastSessionStart)->timestamp }});
+            @endif
+        });
     </script>
+
 
     {{-- yajra table data  --}}
     <script>
@@ -1106,7 +1041,7 @@
             $('.table-userdata').DataTable({
                 processing: true,
                 serverSide: true,
-                 responsive: true,
+                responsive: true,
                 ajax: '{{ route('dashboard') }}',
                 columns: [ // ← Correct key
                     {

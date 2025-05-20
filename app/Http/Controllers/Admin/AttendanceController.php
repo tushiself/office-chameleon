@@ -61,15 +61,20 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
         $today = now()->toDateString();
+
         $attendance = Attendance::firstOrCreate(
             ['user_id' => $user->id, 'date' => $today],
             ['check_in_type' => 'Free']
         );
 
-        if ($attendance->time_out) {
-            return response()->json(['message' => 'Already clocked out'], 400);
+        // Check if there is an active session
+        $activeSession = $attendance->sessions()->whereNull('end_time')->first();
+
+        if (!$activeSession) {
+            return response()->json(['message' => 'You are not currently clocked in'], 400);
         }
 
+        // Update the working/free status
         $attendance->check_in_type = $request->status;
         $attendance->save();
 
@@ -83,26 +88,24 @@ class AttendanceController extends Controller
         $today = Carbon::today()->toDateString();
         $now = Carbon::now();
 
+        // Get or create the day's attendance
         $attendance = Attendance::firstOrCreate(
-            ['user_id' => $user->id, 'date' => $today],
-            ['time_in' => $now, 'check_in_type' => 'working']
+            ['user_id' => $user->id, 'check_in_type' => 'working', 'date' => $today],
+            ['time_in' => $now]
         );
 
-        // Already clocked out?
-        if ($attendance->time_out) {
-            return response()->json(['message' => 'Already clocked out'], 400);
+        // Check if a session is already active
+        $activeSession = $attendance->sessions()->whereNull('end_time')->first();
+        if ($activeSession) {
+            return response()->json(['message' => 'Already clocked in.'], 400);
         }
 
-        // Already clocked in → error
-        if ($attendance->sessions()->exists()) {
-            return response()->json(['message' => 'Already clocked in'], 400);
-        }
+        // Start a new session
+        $attendance->sessions()->create(['time_in' => $now]);
 
-        // Start session
-        $attendance->sessions()->create(['start_time' => $now]);
-
-        return response()->json(['message' => 'Clocked in']);
+        return response()->json(['message' => 'Clocked in successfully.']);
     }
+
 
     public function clockOut(Request $request)
     {
@@ -114,77 +117,36 @@ class AttendanceController extends Controller
             ->where('date', $today)
             ->first();
 
-        if (!$attendance || $attendance->time_out) {
-            return response()->json(['message' => 'Already clocked out'], 400);
+        if (!$attendance) {
+            return response()->json(['message' => 'No attendance record found.'], 404);
         }
 
-        // Close any open session
         $session = $attendance->sessions()->whereNull('end_time')->latest()->first();
-        if ($session) {
-            $session->update(['end_time' => $now]);
+
+        if (!$session || !$session->time_in) {
+            return response()->json(['message' => 'No active session found.'], 400);
         }
 
-        // Use frontend duration if provided, else calculate
-        if ($request->filled('duration')) {
-            $totalSeconds = (int)$request->duration;
-        } else {
-            $totalSeconds = $attendance->sessions->sum(function ($s) {
-                return $s->start_time && $s->end_time
-                    ? Carbon::parse($s->end_time)->diffInSeconds($s->start_time)
-                    : 0;
-            });
-        }
+        $duration = Carbon::parse($session->time_in)->diffInSeconds($now);
 
+        $session->update([
+            'end_time' => $now,
+            'duration_seconds' => $duration
+        ]);
+
+        // Recalculate total duration
+        $totalDuration = $attendance->sessions()->sum('duration_seconds');
         $attendance->update([
             'time_out' => $now,
-            'total_hours' => gmdate('H:i:s', $totalSeconds)
+            'total_hours' => gmdate('H:i:s', $totalDuration)
         ]);
 
-        return response()->json(['message' => 'Clocked out']);
+        return response()->json(['message' => 'Clocked out successfully.']);
     }
 
 
 
-    public function startSession(Request $request)
-    {
-        $attendance = Attendance::where('user_id', Auth::id())
-            ->where('date', now()->toDateString())
-            ->first();
 
-        if (!$attendance) {
-            return response()->json(['message' => 'Attendance not found'], 404);
-        }
-
-        AttendanceSession::create([
-            'attendance_id' => $attendance->id,
-            'start_time' => now(),
-        ]);
-
-        return response()->json(['message' => 'Session started']);
-    }
-
-    public function pauseSession(Request $request)
-    {
-        $attendance = Attendance::where('user_id', Auth::id())
-            ->where('date', now()->toDateString())
-            ->first();
-
-        if (!$attendance) {
-            return response()->json(['message' => 'Attendance not found'], 404);
-        }
-
-        $session = AttendanceSession::where('attendance_id', $attendance->id)
-            ->whereNull('end_time')
-            ->latest()
-            ->first();
-
-        if ($session) {
-            $session->end_time = now();
-            $session->save();
-        }
-
-        return response()->json(['message' => 'Session paused']);
-    }
 
 
 

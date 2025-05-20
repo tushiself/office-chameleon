@@ -50,6 +50,13 @@ class DashboardController extends Controller
                 return Carbon::parse($holiday->date)->day; // 👈 key by day (1-31)
             });
 
+
+        $today = Carbon::today()->toDateString();
+        $attendance = Attendance::with('sessions')->where('user_id', Auth::id())->where('date', $today)->first();
+
+        $isCheckedIn = $attendance?->sessions()->whereNull('end_time')->exists();
+        $lastSessionStart = $attendance?->sessions()->whereNull('end_time')->latest()->first()?->time_in;
+
         return view('admin.dashboard', [
             'staff'            => $this->getStaffCount(),
             'department'       => $this->getDepartmentCount(),
@@ -66,7 +73,9 @@ class DashboardController extends Controller
             'salaryData'       => $salaryData,
             'attendanceSummary' => $attendanceSummary,
             'currentDate' => $currentDate,
-            'holidays' => $holidays
+            'holidays' => $holidays,
+            'isCheckedIn' =>  $isCheckedIn,
+            'lastSessionStart' => $lastSessionStart,
         ]);
     }
 

@@ -8,11 +8,11 @@ class AttendanceSession extends Model
 {
     protected $fillable = [
         'attendance_id',
-        'start_time',
+        'time_in',
         'end_time',
+        'duration_seconds'
     ];
 
-    protected $dates = ['start_time', 'end_time'];
 
     public function attendance()
     {
