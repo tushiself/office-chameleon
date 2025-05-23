@@ -510,6 +510,12 @@
                 </div>
             </div>
         </div>
+        <div class="card">
+            <div class="card-body">
+                <h5>Total Payable Salary (All Staff)</h5>
+                <p><strong>₹ {{ round($totalPayableSalaryAllStaff) }}</strong></p>
+            </div>
+        </div>
 
         <!-- Edit Department Modal -->
         <div id="editModal"

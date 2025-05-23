@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\LeaveController;
 use App\Http\Controllers\Admin\LeaveTypeController;
+use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SalaryController;
 use App\Http\Controllers\Admin\StaffController;
@@ -22,7 +23,6 @@ Route::get('/password/change',  [AuthController::class, 'create'])
 
 Route::post('/password/change', [AuthController::class, 'store'])
     ->name('password.change.store');
-Route::prefix('chameleon')->group(function () {
 
     // AuthController -------------------------------------------
 
@@ -60,4 +60,4 @@ Route::prefix('chameleon')->group(function () {
     Route::post('/attendance/pause-session', [AttendanceController::class, 'pauseSession'])->name('attendance.pauseSession');
 
     Route::resource('holiday', HolidayController::class, ['name' => 'holiday']);
-});
+    Route::resource('policy', PolicyController::class, ['name' => 'policy']);

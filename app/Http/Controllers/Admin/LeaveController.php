@@ -112,7 +112,7 @@ class LeaveController extends Controller
             'remarks'         => $request->remarks,
         ]);
 
-        return redirect()->back()->with('success', 'Leave submitted successfully.');
+        return redirect()->route('leave.index')->with('success', 'Leave submitted successfully.');
     }
 
     public function updateStatus(Request $request, $id)

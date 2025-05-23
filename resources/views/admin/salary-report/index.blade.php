@@ -1,9 +1,13 @@
 @extends('layouts.admin')
 @section('content')
     <div class="mt-10 lg:mt-11">
-        <h2 class="font-bold text-base">Salary Report -
-            {{ \Carbon\Carbon::createFromFormat('m', $selectedMonth)->format('F') }}
-            {{ $selectedYear }}</h2>
+        <div class="flex justify-between items-center w-full">
+            <h2 class="font-bold text-base">
+                Salary Report - {{ \Carbon\Carbon::createFromFormat('m', $selectedMonth)->format('F') }} {{ $selectedYear }}
+            </h2>
+           
+        </div>
+
         <div class="bg-white shadow-primary mt-5.5 rounded-10px">
             <div class="bg-lightgraybg p-5 lg:p-7 rounded-t-10px border-b-2 border-gray">
                 <form method="GET" action="{{ route('salary.report') }}"
@@ -20,15 +24,17 @@
                         class="bg-white border border-gray cursor-pointer rounded-sm p-2.5 pr-5 custom-select">
                         @foreach (range(date('Y') - 5, date('Y') + 1) as $y)
                             <option value="{{ $y }}" {{ $y == $selectedYear ? 'selected' : '' }}>
-                                {{ $y }}</option>
+                                {{ $y }}
+                            </option>
                         @endforeach
                     </select>
                     <button type="submit" class="bg-purple text-white p-2.5 rounded-sm cursor-pointer">Filter</button>
                 </form>
+
             </div>
             <div class="p-5 lg:p-8">
                 <div class="flex flex-wrap -mx-2.5">
-                        @foreach ($salaryData as $data)
+                    @foreach ($salaryData as $data)
                         <div class="w-full md:w-1/2 lg:w-full xl:w-1/2 2xl:w-1/3 p-2.5">
                             <div class="bg-lightgraybg rounded-lg border-2 border-gray">
                                 <div
@@ -68,17 +74,30 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex flex-wrap -mx-1.5 mt-5">
-                                        <div class="w-1/2 px-1.5">
+                                    <div class="flex flex-wrap -mx-1.5 mt-5 justify-between">
+                                        <div class="px-1.5">
                                             <h5 class="font-semibold mb-3">Salary Insights</h5>
-                                            <p class="text-[#CFCADB] text-xs mt-1">Salary Per Day : <b
+
+                                            <p class="text-[#CFCADB] text-xs mt-1">
+                                                Salary Per Day : <b
                                                     class="text-darkgray">₹{{ round($data['salary_per_day']) }}</b>
+                                            </p> 
+
+                                            <!-- <p class="text-[#CFCADB] text-xs mt-1">
+                                                Total Worked Hours : <b
+                                                    class="text-darkgray">{{ $data['total_worked_hours'] }}</b>
                                             </p>
-                                            <p class="text-[#CFCADB] text-xs mt-1">Monthly Salary : <b
+                                             <p class="text-[#CFCADB] text-xs mt-1">
+                                                Salary Per Hour : <b
+                                                    class="text-darkgray">₹{{ round($data['salary_per_hour'], 2) }}</b>
+                                            </p> -->
+
+                                            <p class="text-[#CFCADB] text-xs mt-1">
+                                                Monthly Salary : <b
                                                     class="text-darkgray">₹{{ round($data['total_salary']) }}</b>
                                             </p>
                                         </div>
-                                        <div class="w-1/2 px-1.5">
+                                        <div class="px-1.5 text-right">
                                             <h5 class="font-semibold mb-3">Leaves Insights</h5>
                                             <p class="text-[#CFCADB] text-xs mt-1">Paid Leaves : <b
                                                     class="text-darkgray">{{ $data['paid_leaves'] }}</b>
@@ -90,9 +109,9 @@
                                 </div>
                             </div>
                         </div>
-                        @endforeach
-                    </div>
+                    @endforeach
                 </div>
+            </div>
         </div>
     </div>
 @endsection

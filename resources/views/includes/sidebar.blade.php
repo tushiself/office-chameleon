@@ -202,17 +202,24 @@
              <li class="nav-item shadow-primary bg-white duration-300 rounded-lg">
                  <a href="{{ route('holiday.index') }}"
                      class="relative flex items-center gap-4 py-4 px-4.5 rounded-lg {{ request()->routeIs('holiday.index') ? 'active' : '' }}">
-                     <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+                     <svg class="w-5 h-5 text-sky" xmlns="http://www.w3.org/2000/svg" version="1.1"
                          xmlns:xlink="http://www.w3.org/1999/xlink" width="22" height="19" x="0" y="0"
                          viewBox="0 0 24 24" style="enable-background:new 0 0 512 512" xml:space="preserve"
                          class="">
                          <g>
                              <path
                                  d="M23 22c-.415 0-.92-.207-1.455-.426-.658-.269-1.404-.574-2.212-.574s-1.554.305-2.212.574c-.535.219-1.041.426-1.455.426s-.92-.207-1.455-.426c-.658-.269-1.404-.574-2.212-.574s-1.554.305-2.212.574c-.388.159-.76.311-1.093.383l3.752-8.471 7.186 3.276a2.933 2.933 0 0 0 2.578-.063 2.965 2.965 0 0 0 1.56-2.083c1.108-5.695-1.6-11.261-6.587-13.535C12.049-1.26 5.913.356 2.592 4.926a3.097 3.097 0 0 0-.489 2.618 3.001 3.001 0 0 0 1.658 1.982l6.865 3.13-3.919 8.849C6.092 21.256 5.405 21 4.666 21c-.808 0-1.554.305-2.212.574-.535.219-1.04.426-1.455.426a1 1 0 0 0 0 2c.808 0 1.554-.305 2.212-.574.535-.219 1.04-.426 1.455-.426s.92.207 1.455.426c.658.269 1.404.574 2.212.574s1.554-.305 2.212-.574C11.08 23.207 11.585 23 12 23s.92.207 1.455.426c.658.269 1.404.574 2.212.574s1.554-.305 2.212-.574c.535-.219 1.041-.426 1.455-.426s.92.207 1.455.426c.658.269 1.404.574 2.212.574a1 1 0 0 0 0-2Z"
-                                 fill="currentColor" opacity="1" class="w-5 h-5 text-sky"></path>
+                                 fill="currentColor" opacity="1"></path>
                          </g>
                      </svg>
                      Holiday
+                 </a>
+             </li>
+             <li class="nav-item shadow-primary bg-white duration-300 rounded-lg">
+                 <a href="{{ route('policy.index') }}"
+                     class="relative flex items-center gap-4 py-4 px-4.5 rounded-lg {{ request()->routeIs('policy.index') ? 'active' : '' }}">
+                     <svg class="w-5 h-5 policy-icon" xmlns="http://www.w3.org/2000/svg" id="Layer_1" height="512" viewBox="0 0 24 24" width="512" data-name="Layer 1"><path d="m14 7v-6.54a6.977 6.977 0 0 1 2.465 1.59l3.484 3.486a6.954 6.954 0 0 1 1.591 2.464h-6.54a1 1 0 0 1 -1-1zm8 3.485v8.515a5.006 5.006 0 0 1 -5 5h-10a5.006 5.006 0 0 1 -5-5v-14a5.006 5.006 0 0 1 5-5h4.515c.163 0 .324.013.485.024v6.976a3 3 0 0 0 3 3h6.976c.011.161.024.322.024.485zm-8 8.515a1 1 0 0 0 -1-1h-5a1 1 0 0 0 0 2h5a1 1 0 0 0 1-1zm3-4a1 1 0 0 0 -1-1h-8a1 1 0 0 0 0 2h8a1 1 0 0 0 1-1z"/></svg>
+                     Policy
                  </a>
              </li>
          </ul>

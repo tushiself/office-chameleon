@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('admin-assets/datatables/dataTables.dataTables.css') }}">
     <link rel="stylesheet" href="{{ asset('admin-assets/datatables/responsive.dataTables.css') }}">
     <link rel="stylesheet" href="{{ asset('admin-assets/output.css') }}">
+    <link rel="stylesheet" href="{{ asset('admin-assets/theme.css') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         .nav-item.active a {
@@ -28,4 +29,6 @@
             color: #f87171;
         }
     </style>
+@yield('custom-css')
+
 </head>

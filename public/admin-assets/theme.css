@@ -1,0 +1,91 @@
+@layer theme {
+
+  :root,
+  :host {
+    --color-lightgray: #6b7a9c;
+  }
+}
+
+.sidebar-menu .nav-item>a:is(.active, :hover) svg,
+.sidebar-dropdown.open>a svg {
+  color: #ffffff;
+}
+.policy-icon{
+  fill: var(--color-purple);
+}
+.sidebar-menu .nav-item>a:is(.active, :hover) svg.policy-icon path,
+.sidebar-dropdown.open>a svg.policy-icon path{
+  fill: #ffffff;
+}
+
+body .ql-editor {
+
+  white-space: normal;
+}
+
+@media (width >=40rem) {
+  body .ql-editor {
+    padding: calc(var(--spacing) * 5);
+  }
+}
+@media (width >=80rem) {
+  body .ql-editor {
+    padding: calc(var(--spacing) * 7);
+  }
+}
+
+
+.ql-editor :is(h1,
+  h2,
+  h3,
+  h4,
+  h1 strong,
+  h2 strong,
+  h3 strong,
+  h4 strong, strong) {
+  color: var(--color-darkgray) !important;
+}
+
+.ql-editor :is(h1,
+  h2,
+  h3,
+  h4,
+  h1 strong,
+  h2 strong,
+  h3 strong,
+  h4 strong) {
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+.ql-editor :is(p, span) {
+  color: var(--color-lightgray) !important;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 400;
+}
+
+.ql-editor .ql-align-center {
+  text-align: left !important;
+}
+
+@media(max-width: 767px) {
+
+  .ql-editor :is(h1,
+    h2,
+    h3,
+    h4,
+    h1 strong,
+    h2 strong,
+    h3 strong,
+    h4 strong) {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .ql-editor :is(p, span) {
+    color: var(--color-lightgray) !important;
+    font-size: 14px;
+    line-height: 24px;
+  }
+}

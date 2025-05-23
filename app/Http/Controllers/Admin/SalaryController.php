@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Leave;
 use App\Models\LeaveType;
+use App\Models\SalaryHistory;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -14,84 +15,94 @@ class SalaryController extends Controller
 {
     public function salaryReport(Request $request)
     {
-        // Get selected month and year, or use current values if not provided
         $selectedMonth = $request->get('month', Carbon::now()->format('m'));
         $selectedYear = $request->get('year', Carbon::now()->format('Y'));
 
-        // Get all staff data
         $staffMembers = User::where('role', '!=', 'Admin')->get();
-
         $salaryData = [];
 
         foreach ($staffMembers as $staff) {
             $staffId = $staff->id;
-            $monthlySalary = $staff->monthly_salary;
+            // Get latest applicable salary from SalaryHistory
+            $monthlySalary = SalaryHistory::where('user_id', $staffId)
+                ->where(function ($query) use ($selectedMonth, $selectedYear) {
+                    $query->where('year', '<', $selectedYear)
+                        ->orWhere(function ($q) use ($selectedMonth, $selectedYear) {
+                            $q->where('year', $selectedYear)
+                                ->where('month', '<=', $selectedMonth);
+                        });
+                })
+                ->orderBy('year', 'desc')
+                ->orderBy('month', 'desc')
+                ->value('monthly_salary') ?? $staff->monthly_salary;
             $department = $staff->department->name ?? 'N/A';
 
-            // Get attendance for the selected month and year
+
+
+            // Attendance
             $attendance = Attendance::where('user_id', $staffId)
                 ->whereMonth('date', $selectedMonth)
                 ->whereYear('date', $selectedYear)
                 ->get();
 
-            $presentDays = $attendance->count();
+            $presentDays = 0;
+            $totalWorkedSeconds = 0;
 
-            // Fetch all leave types
-            $leaveTypes = LeaveType::all();
+            foreach ($attendance as $record) {
+                if (!$record->total_hours) continue;
 
-            // Get leave data for the selected staff, month, and year with approved status
-            $leaveData = Leave::where('user_id', $staffId)
-                ->whereMonth('from_date', $selectedMonth)
-                ->whereYear('from_date', $selectedYear)
-                ->where('leave_status', 1) // Approved leaves
-                ->get();
+                $totalHr = Carbon::parse('00:00:00')->diffInSeconds(Carbon::parse($record->total_hours));
+                $totalWorkedSeconds += $totalHr;
 
-            // Separate paid and unpaid leave type IDs
-            $paidTypeIds = $leaveTypes->where('paid_type', 'paid')->pluck('id')->toArray();
-            $unpaidTypeIds = $leaveTypes->where('paid_type', 'unpaid')->pluck('id')->toArray();
+                $dayOfWeek = Carbon::parse($record->date)->dayOfWeek;
+                $requiredSeconds = ($dayOfWeek === 6) ? (3.75 * 3600) : (int)(7.75 * 3600);
 
-            // Sum requested_days for each type
-            $paidLeaves = $leaveData->whereIn('leave_type_id', $paidTypeIds)->sum('requested_days');
-            $unpaidLeaves = $leaveData->whereIn('leave_type_id', $unpaidTypeIds)->sum('requested_days');
-
-
-
-            // Calculate Sundays and Saturdays
-            $sundays = 0;
-            $saturdays = 0;
-            $daysInMonth = Carbon::parse("$selectedYear-$selectedMonth-01")->daysInMonth;
-
-            for ($d = 1; $d <= $daysInMonth; $d++) {
-                $dayOfWeek = Carbon::parse("$selectedYear-$selectedMonth-$d")->dayOfWeek;
-                if ($dayOfWeek == 0) {
-                    $sundays++;
-                } elseif ($dayOfWeek == 6) {
-                    $saturdays++;
+                if ($totalHr >= $requiredSeconds) {
+                    $presentDays++;
                 }
             }
 
-            // Saturdays ka calculation
-            $halfSaturdaysAsFull = floor($saturdays / 2);
 
-            // Working days basic calculation
-            $workingDays = $daysInMonth - $sundays - $halfSaturdaysAsFull;
+            // Total worked time
+            $hours = floor($totalWorkedSeconds / 3600);
+            $minutes = floor(($totalWorkedSeconds % 3600) / 60);
+            $totalWorkedHours = "{$hours} hr {$minutes} min";
+            $roundedHours = $hours + ($minutes >= 30 ? 1 : 0);
 
-            // Agar 5 Saturday hai toh ek din extra add kar do
-            if ($saturdays == 5) {
-                $workingDays += 1;
+            // Leave summary
+            $leaveSummary = $this->getLeaveSummary($staffId, $selectedMonth, $selectedYear);
+            $paidLeaves = $leaveSummary['paid_leaves'];
+            $unpaidLeaves = $leaveSummary['unpaid_leaves'];
+
+            // Working days and salary
+            $daysInMonth = Carbon::parse("$selectedYear-$selectedMonth-01")->daysInMonth;
+            $sundays = 0;
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                if (Carbon::parse("$selectedYear-$selectedMonth-$d")->dayOfWeek === 0) {
+                    $sundays++;
+                }
             }
 
+            $workingDays = $daysInMonth - $sundays;
             $salaryPerDay = $workingDays > 0 ? $monthlySalary / $workingDays : 0;
+            $salaryPerHour = $salaryPerDay / 8;
 
-
-
-            // Calculate total salary after deductions
             $effectivePresent = $presentDays + $paidLeaves;
             $absentDays = max($workingDays - $effectivePresent - $unpaidLeaves, 0);
-            $deduction = $salaryPerDay * $unpaidLeaves;
-            $payableSalary = $salaryPerDay * $effectivePresent;
 
-            // Store data
+
+            $attendances = Attendance::where('user_id', $staffId)
+                ->whereMonth('date', $selectedMonth)
+                ->whereYear('date', $selectedYear)
+                ->get();
+
+            $presentDay = $attendances->count();
+
+            $totalAbsent = $workingDays - $presentDay + $unpaidLeaves; // Including unpaid leaves
+
+
+            $payableSalary = round($salaryPerDay * $presentDay, 2);
+
             $salaryData[] = [
                 'staff_id' => $staffId,
                 'full_name' => $staff->first_name . ' ' . $staff->last_name,
@@ -100,17 +111,111 @@ class SalaryController extends Controller
                 'department' => $department,
                 'working_days' => $workingDays,
                 'sundays' => $sundays,
-                'present_days' => $presentDays,
-                'absentDays' => $absentDays,
+                'present_days' => $presentDay,
+                'absentDays' => $totalAbsent,
                 'paid_leaves' => $paidLeaves,
-                'unpaid_leaves' => $unpaidLeaves,
-                'salary_per_day' => $salaryPerDay,
+                'unpaid_leaves' => $totalAbsent,
+                'salary_per_day' => round($salaryPerDay, 2),
+                'salary_per_hour' => round($salaryPerHour, 2),
                 'total_salary' => $monthlySalary,
                 'payable_salary' => $payableSalary,
+                'total_worked_hours' => $totalWorkedHours,
             ];
         }
 
-        // Pass data to the view
         return view('admin.salary-report.index', compact('salaryData', 'selectedMonth', 'selectedYear', 'staffMembers'));
+    }
+    public function getLeaveSummary($userId, $month, $year): array
+    {
+        $leaveTypes = LeaveType::all();
+        $casualLeave = $leaveTypes->firstWhere('leave_type', 'Casual Leave');
+
+        $leaves = Leave::with(['leavetype'])
+            ->where('user_id', $userId)
+            ->whereMonth('from_date', $month)
+            ->whereYear('from_date', $year)
+            ->where('leave_status', 1)
+            ->get();
+
+        $convertToDays = function ($hours) {
+            if ($hours >= 14) return 2;
+            if ($hours >= 11) return 1.5;
+            if ($hours >= 6) return 1;
+            if ($hours >= 3) return 0.5;
+            return 0;
+        };
+
+        $paidLeaves = 0;
+        if ($casualLeave) {
+            $paidLeaves = $leaves->where('leave_type_id', $casualLeave->id)
+                ->reduce(function ($carry, $leave) use ($convertToDays) {
+                    if ($leave->total_hours) {
+                        return $carry + $convertToDays(floatval($leave->total_hours));
+                    }
+                    return $carry + $leave->requested_days;
+                }, 0);
+        }
+
+        $unpaidLeaves = $leaves
+            ->filter(function ($leave) use ($casualLeave) {
+                return !$casualLeave || $leave->leave_type_id !== $casualLeave->id;
+            })
+            ->reduce(function ($carry, $leave) use ($convertToDays) {
+                if ($leave->total_hours) {
+                    return $carry + $convertToDays(floatval($leave->total_hours));
+                }
+                return $carry + $leave->requested_days;
+            }, 0);
+
+        $shortfallLeave = $this->calculateShortfallLeaveFromAttendance($userId);
+        $unpaidLeaves += $shortfallLeave;
+
+        return [
+            'paid_leaves' => $paidLeaves,
+            'unpaid_leaves' => $unpaidLeaves,
+        ];
+    }
+
+    private function calculateShortfallLeaveFromAttendance($userId)
+    {
+        $attendances = Attendance::where('user_id', $userId)
+            ->whereNotNull('date')
+            ->whereNotNull('total_hours')
+            ->where('total_hours', '!=', '00:00:00')
+            ->get()
+            ->unique('date');
+
+        $lateDays = 0;
+        $lateDetails = [];
+
+        foreach ($attendances as $attendance) {
+            $date = Carbon::parse($attendance->date);
+            $dayOfWeek = $date->dayOfWeek;
+            $workedTime = Carbon::parse($attendance->total_hours);
+            $workedSeconds = $workedTime->hour * 3600 + $workedTime->minute * 60 + $workedTime->second;
+
+            $minRequiredSeconds = null;
+
+            if (in_array($dayOfWeek, [1, 2, 3, 4, 5])) {
+                $minRequiredSeconds = 7 * 3600 + 45 * 60; // 07:45:00
+            } elseif ($dayOfWeek === 6) {
+                $minRequiredSeconds = 3 * 3600 + 45 * 60; // 03:45:00
+            }
+
+            // Count only if worked time is strictly less than required
+            if ($minRequiredSeconds !== null && $workedSeconds < $minRequiredSeconds) {
+                $lateDays++;
+                $lateDetails[] = [
+                    'date' => $attendance->date,
+                    'day' => $date->format('l'),
+                    'worked' => $attendance->total_hours,
+                    'required' => gmdate('H:i:s', $minRequiredSeconds),
+                ];
+            }
+        }
+
+        $shortfallLeave = floor($lateDays / 3) * 0.5;
+
+        return $shortfallLeave;
     }
 }
